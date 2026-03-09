@@ -3,6 +3,7 @@ venv/
 face_dataset/
 calibration/
 calibration_dupe/
+training_reports/
 ###
 *.jpg
 *.jpeg
