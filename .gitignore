@@ -1,0 +1,9 @@
+###
+/venv
+/face_dataset
+/calibration
+/calibration_dupe
+###
+.jpg
+.jpeg
+
