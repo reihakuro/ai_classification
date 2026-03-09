@@ -1,9 +1,16 @@
 ###
-/venv
-/face_dataset
-/calibration
-/calibration_dupe
+venv/
+face_dataset/
+calibration/
+calibration_dupe/
 ###
-.jpg
-.jpeg
+*.jpg
+*.jpeg
+###
+*.keras
+*.json
+*.tflite
+*.h5
+###
+*.pyc
 
