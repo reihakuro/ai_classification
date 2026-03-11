@@ -13,5 +13,7 @@ training_reports/
 *.tflite
 *.h5
 ###
+*.pkl
+###
 *.pyc
 
