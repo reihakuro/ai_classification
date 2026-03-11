@@ -3,7 +3,8 @@ import os
 
 # 1. Cấu hình thư mục và ID người dùng
 # Thay đổi tên này cho từng người (VD: person_01, person_02, person_03)
-base_dir = "calibration"
+base_dir = "../calibration"
+person_name = input("Name/Tag: ")
 save_dir = os.path.join(base_dir, person_name)
 
 # Tạo thư mục nếu chưa tồn tại [cite: 30]
