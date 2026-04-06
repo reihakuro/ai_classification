@@ -1,14 +1,26 @@
 # IMAGE CLASSIFICATION ON RASPBERRY PI
 ## Overview
-This repository contains a basic Machine Learning classification system running on a Raspberry Pi. The model is trained on a host PC using a machine learning framework, then the trained model is exported and deployed on the Raspberry Pi for real-time inference.
+This repository presents a machine learning-based image classification pipeline optimized for edge computing environments like Raspberry Pi. 
+
+The system architecture adopts a decoupled computational approach:   
+- Training and optimize phase is executed on a high-performance host machine
+- Trained and optimized model is exported and deployed onto Raspberry Pi 
+
+This methodology enables efficient, real-time visual inference with minimal latency without relying on cloud-based processing.
+
 ## Features
-- Image classification using a trained ML model
-- Model training on host
-- Real-time inference running on Raspberry Pi
+- Edge-based Inference: real-time image classification executed locally on the Raspberry Pi hardware.
+- Host training: Utilization of host computing resources for robust model training, hyperparameter tuning, and weight optimization.
+- Model optimization : integration of pruning techniques to reduce model footprint, benchmarking to ensure an optimal balance between accuracy and computational efficiency.
+
 ## Repository Structure
-- data: create dataset and pre-processing scripts for training step
+- data_prep: create dataset and pre-processing scripts for training step
 - train: training and package models script 
-- inference_host: running ML models on PC
-- benchmark: performance comparison between baseline model and pruned model
-- inference_pi: deploy, inference and benchmark on Raspberry Pi hardware
+- inference: deploy, inference and benchmark
+- eval: performance comparison between baseline model and pruned model
+
+## System Specifications
+The system is developed and evaluated on the following hardware and software stack:
+- **Edge Hardware:** Raspberry Pi 4 Model B - 8GiB RAM with Logitech Webcam C505E
+- **Software Environment:** Raspberry Pi OS, Python 3.11, TensorFlow 2.x, OpenCV, and TensorFlow Lite for edge inference.
 
