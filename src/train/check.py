@@ -1,9 +1,10 @@
 import os
+from pathlib import Path
 
-current_file = os.path.abspath(__file__)
-project_root = os.path.dirname(os.path.dirname(current_file))
+current_file = Path(__file__).resolve()
+project_root = current_file.parent.parent
 
-base_dir = os.path.join(project_root, "face_dataset")
+base_dir = project_root / "data" / "test"
 
 for person in os.listdir(base_dir):
     person_dir = os.path.join(base_dir, person)

@@ -5,29 +5,28 @@ import time
 import numpy as np
 import cv2
 import tensorflow as tf
+from pathlib import Path
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+current_file = Path(__file__).resolve()
+project_root = current_file.parent.parent
 
-SAVE_DIR   = os.path.join(ROOT, "tf_cnn_face_model_v1")
-MODEL_PATH = os.path.join(SAVE_DIR, "best.keras")
-META_PATH  = os.path.join(SAVE_DIR, "class_names.json")
+SAVE_DIR   = project_root / "models" / "tf_cnn_face_model_v2"
+MODEL_PATH = SAVE_DIR / "best.keras"
+META_PATH  = SAVE_DIR / "class_names.json"
+IMG_PATH   = project_root / "data" / "test.jpg"
 
-IMG_PATH   = os.path.join(ROOT, "test.jpg")
 def main():
-    # 1. Tải metadata
     with open(META_PATH, "r", encoding="utf-8") as f:
         meta = json.load(f)
     class_names = meta["class_names"]
     img_size = tuple(meta["img_size"])
 
-    # 2. Tải mô hình FP32 gốc
-    print("[*] Đang tải mô hình Keras FP32...")
+    print("Loading model...")
     model = tf.keras.models.load_model(MODEL_PATH)
 
-    # 3. Chuẩn bị ảnh đầu vào
     img = cv2.imread(IMG_PATH)
     if img is None:
-        print(f"LỖI: Không tìm thấy ảnh '{IMG_PATH}'.")
+        print(f"Error: Image not found '{IMG_PATH}'.")
         return
         
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -35,15 +34,12 @@ def main():
     x = img.astype(np.float32) / 255.0
     x = np.expand_dims(x, axis=0)
 
-    # 4. Warm-up (Chạy mồi)
-    # RẤT QUAN TRỌNG: Lần chạy đầu tiên của TF luôn mất nhiều thời gian để khởi tạo đồ thị.
-    # Ta cần chạy mồi vài lần để không làm sai lệch chỉ số Mean và P99.
-    print("[*] Đang chạy warm-up...")
+    print("[*] Running warm-up...")
     for _ in range(5):
         _ = model(x, training=False)
 
     # 5. Tiến hành Benchmark 200 lần
-    print("[*] Bắt đầu chạy benchmark 200 lần...")
+    print("[*] Starting benchmark 200 times...")
     latencies = []
     
     for i in range(200):
@@ -63,7 +59,7 @@ def main():
     p99_latency = np.percentile(latencies, 99)
 
     print("\nPredict:", class_names[pred_idx])
-    print("--- Kết quả Benchmark best.keras (FP32) ---")
+    print("--- Benchmark Results best.keras (FP32) ---")
     print(f"Mean Latency : {mean_latency:.2f} ms")
     print(f"P50 Latency  : {p50_latency:.2f} ms")
     print(f"P90 Latency  : {p90_latency:.2f} ms")

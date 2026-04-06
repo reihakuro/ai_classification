@@ -1,15 +1,10 @@
 import os
+from pathlib import Path
 import tensorflow as tf
 
-# =========================
-# PROJECT ROOT
-# =========================
-ROOT = os.path.dirname(os.path.abspath(__file__))
-
-# =========================
-# CONFIG
-# =========================
-DATA_DIR = os.path.join(ROOT, "face_dataset")
+current_file = Path(__file__).resolve().parent
+ROOT = current_file.parent.parent 
+DATA_DIR = ROOT / "data" / "raw"
 
 IMG_SIZE = (96, 96)
 BATCH_SIZE = 32
@@ -20,18 +15,13 @@ SEED = 42
 VAL_RATIO = 0.15
 TEST_RATIO = 0.15
 
-SAVE_DIR = os.path.join(ROOT, "tf_cnn_face_model_v1pruned")
+SAVE_DIR = ROOT / "models" / "tf_cnn_face_model_pruned"
 
-os.makedirs(SAVE_DIR, exist_ok=True)
-# =========================
-# 2. HÀM LOAD DỮ LIỆU
-# =========================
 def make_datasets():
-    # Load training data
     train_full = tf.keras.utils.image_dataset_from_directory(
         DATA_DIR,
         labels="inferred",
-        label_mode="int", # Chú ý: trả về label dạng số nguyên
+        label_mode="int", 
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
         shuffle=True,
@@ -40,7 +30,6 @@ def make_datasets():
         subset="training",
     )
 
-    # Load validation data
     val_ds = tf.keras.utils.image_dataset_from_directory(
         DATA_DIR,
         labels="inferred",
@@ -56,18 +45,21 @@ def make_datasets():
     class_names = train_full.class_names
     num_classes = len(class_names)
 
-    # Tối ưu tải dữ liệu
+    test_in_train_full_ratio = TEST_RATIO / (1.0 - VAL_RATIO)
+    n_batches = tf.data.experimental.cardinality(train_full).numpy()
+    n_test_batches = max(1, int(round(n_batches * test_in_train_full_ratio)))
+    
+    test_ds = train_full.take(n_test_batches)
+    train_ds = train_full.skip(n_test_batches)
+
     AUTOTUNE = tf.data.AUTOTUNE
-    train_ds = train_full.prefetch(AUTOTUNE)
+    train_ds = train_ds.prefetch(AUTOTUNE)
     val_ds = val_ds.prefetch(AUTOTUNE)
+    test_ds = test_ds.prefetch(AUTOTUNE)
 
-    return train_ds, val_ds, class_names, num_classes
+    return train_ds, val_ds, test_ds, class_names, num_classes
 
-# =========================
-# 3. BUILD PRUNED MODEL (Giảm filters)
-# =========================
 def build_pruned_model(num_classes):
-    # Giữ lại Data Augmentation để model học tốt hơn
     data_augmentation = tf.keras.Sequential([
         tf.keras.layers.RandomFlip("horizontal"),
         tf.keras.layers.RandomRotation(0.05),
@@ -79,7 +71,7 @@ def build_pruned_model(num_classes):
     x = tf.keras.layers.Rescaling(1.0 / 255.0)(inputs)
     x = data_augmentation(x)
 
-    # STRUCTURED PRUNING: Giảm số filters đi một nửa so với baseline
+    # STRUCTURED PRUNING
     # Conv Block 1: 32 -> 16
     x = tf.keras.layers.Conv2D(16, 3, padding="same", activation="relu")(x)
     x = tf.keras.layers.MaxPool2D()(x)
@@ -90,7 +82,7 @@ def build_pruned_model(num_classes):
 
     # Flatten & Dense
     x = tf.keras.layers.Flatten()(x)
-    # Giảm nốt layer Dense từ 256 xuống 64 theo tài liệu lab
+    # Layer Dense 128 -> 64
     x = tf.keras.layers.Dense(64, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.3)(x)
     
@@ -99,20 +91,17 @@ def build_pruned_model(num_classes):
     model = tf.keras.Model(inputs, outputs, name="PrunedCNN_FaceClassifier")
     return model
 
-# =========================
-# 4. HÀM MAIN (Khởi chạy)
-# =========================
 def main():
     tf.random.set_seed(SEED)
 
-    print("Đang load dữ liệu...")
-    train_ds, val_ds, class_names, num_classes = make_datasets()
-    print(f"Số lớp (classes): {num_classes} - {class_names}")
+    print("Load...")
 
-    print("\nĐang khởi tạo Pruned Model...")
+    train_ds, val_ds, test_ds, class_names, num_classes = make_datasets()
+    print(f"Classes: {num_classes} - {class_names}")
+
+    print("\nBuilding pruned model...")
     model = build_pruned_model(num_classes)
     
-    # CHÚ Ý: Dùng sparse_categorical_crossentropy vì label_mode="int"
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=LR),
         loss="sparse_categorical_crossentropy",
@@ -121,19 +110,28 @@ def main():
     
     model.summary()
 
-    os.makedirs(SAVE_DIR, exist_ok=True)
+    SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
-    print("\nBắt đầu huấn luyện mô hình cắt tỉa (Pruned)...")
+    callbacks = [
+        tf.keras.callbacks.ModelCheckpoint( 
+            filepath=str(SAVE_DIR / "best_pruned.keras"),
+            monitor="val_accuracy",
+            mode="max",
+            save_best_only=True
+        )
+    ]
+
+    print("\nStarting training...")
     model.fit(
         train_ds,
         validation_data=val_ds,
-        epochs=EPOCHS
+        epochs=EPOCHS,
+        callbacks=callbacks 
     )
 
-    # Lưu lại model đuôi .keras
-    save_path = os.path.join(SAVE_DIR, "pruned.keras")
-    model.save(save_path)
-    print(f"\nĐã huấn luyện xong! Đã lưu mô hình Pruned tại: {save_path}")
+    save_path = SAVE_DIR / "final_pruned.keras"
+    model.save(str(save_path)) 
+    print(f"\nTraining completed! Final model saved at: {save_path}")
 
 if __name__ == "__main__":
     main()

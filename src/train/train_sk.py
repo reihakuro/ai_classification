@@ -2,10 +2,14 @@ import os
 import cv2
 import numpy as np
 from sklearn.svm import SVC
+from pathlib import Path
 import joblib
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATASET_DIR = os.path.join(ROOT, "face_dataset")
-MODEL_PATH = os.path.join(ROOT, "face_classifier.pkl")
+
+current_file = Path(__file__).resolve().parent
+ROOT = current_file.parent.parent 
+
+DATASET_DIR = ROOT / "data" / "raw"
+MODEL_PATH = ROOT / "models" / "face_classifier.pkl"
 
 X = []
 y = []

@@ -4,11 +4,14 @@ import json
 import numpy as np
 import tensorflow as tf
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+from pathlib import Path
 
-SAVE_DIR = os.path.join(ROOT, "tf_cnn_face_model_v1")
-MODEL_PATH = os.path.join(SAVE_DIR, "best.keras")
-LABELS_JSON = os.path.join(SAVE_DIR, "class_names.json")
+current_file = Path(__file__).resolve()
+project_root = current_file.parent.parent.parent
+
+SAVE_DIR = project_root / "models" / "tf_cnn_face_model_v2"
+MODEL_PATH = SAVE_DIR / "best.keras"
+LABELS_JSON = SAVE_DIR / "class_names.json"
 
 
 def load_meta():
@@ -38,8 +41,8 @@ def main():
     pred = int(np.argmax(probs))
     conf = float(probs[pred])
 
-    print("Pred:", class_names[pred])
-    print("Conf:", conf)
+    print("Predict:", class_names[pred])
+    print("Confidence:", conf)
 
 
 if __name__ == "__main__":
