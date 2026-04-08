@@ -10,10 +10,11 @@ from pathlib import Path
 current_file = Path(__file__).resolve()
 project_root = current_file.parent.parent
 
-SAVE_DIR   = project_root / "models" / "tf_cnn_face_model_v2"
+version = input("Checking what version?: ")
+SAVE_DIR   = project_root / "models" / f"tf_cnn_face_model_v{version}"
 MODEL_PATH = SAVE_DIR / "best.keras"
 META_PATH  = SAVE_DIR / "class_names.json"
-IMG_PATH   = project_root / "data" / "test.jpg"
+IMG_PATH   = project_root / "test.jpg"
 
 def main():
     with open(META_PATH, "r", encoding="utf-8") as f:
@@ -38,18 +39,16 @@ def main():
     for _ in range(5):
         _ = model(x, training=False)
 
-    # 5. Tiến hành Benchmark 200 lần
     print("[*] Starting benchmark 200 times...")
     latencies = []
     
     for i in range(200):
         t0 = time.perf_counter()
-        # Dùng model(x) thay vì model.predict(x) để đo tốc độ suy luận cốt lõi, bỏ qua overhead của keras
+        
         preds = model(x, training=False) 
         t1 = time.perf_counter()
         latencies.append((t1 - t0) * 1000)
 
-    # 6. Xử lý và in kết quả
     preds_np = preds.numpy()
     pred_idx = int(np.argmax(preds_np[0]))
     

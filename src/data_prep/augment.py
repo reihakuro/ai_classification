@@ -1,63 +1,78 @@
-import cv2
 import os
+import cv2
 import numpy as np
 from pathlib import Path
-import random
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 
-current_file = Path(__file__).resolve()
-project_root = current_file.parent.parent
+# ==========================================
+# CẤU HÌNH ĐƯỜNG DẪN
+# ==========================================
+current_file = Path(__file__).resolve().parent
+project_root = current_file.parent.parent 
 
-INPUT_DIR = project_root / "data" / "calibration"
-OUTPUT_DIR = project_root / "data" / "processed"
+DATA_DIR = project_root / "data" / "raw"
 
-TARGET_COUNT = 200
+TARGET_IMAGES_PER_CLASS = 500
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+datagen = ImageDataGenerator(
+    rotation_range=15,        # Xoay ngẫu nhiên +- 15 độ
+    width_shift_range=0.1,    # Dịch qua trái/phải 10%
+    height_shift_range=0.1,   # Dịch lên/xuống 10%
+    brightness_range=[0.7, 1.3], # Tối đi 30% hoặc sáng lên 30%
+    zoom_range=0.1,           # Phóng to/thu nhỏ 10%
+    horizontal_flip=True,     # Lật gương (rất quan trọng)
+    fill_mode='nearest'       # Lấp đầy các điểm ảnh bị trống khi xoay
+)
 
-if not os.path.exists(OUTPUT_DIR):
-    os.makedirs(OUTPUT_DIR)
+def augment_dataset():
+    if not DATA_DIR.exists():
+        print(f"[!] Lỗi: Không tìm thấy thư mục {DATA_DIR}")
+        return
 
-img_files = [f for f in os.listdir(INPUT_DIR) if f.endswith(('.png', '.jpg', '.jpeg'))]
+    for person_name in os.listdir(DATA_DIR):
+        person_dir = DATA_DIR / person_name
+        if not person_dir.is_dir():
+            continue
 
-if len(img_files) == 0:
-    print(f"Error: no images '{INPUT_DIR}'")
-    exit()
+        # Đếm số ảnh hiện tại của người này
+        existing_images = [f for f in os.listdir(person_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        current_count = len(existing_images)
 
-print(f"Found {len(img_files)} original images. Proceeding with duplication and augmentation...")
+        if current_count >= TARGET_IMAGES_PER_CLASS:
+            print(f"[*] {person_name}: Đã có {current_count} ảnh. Bỏ qua.")
+            continue
 
-current_count = 0
-for f in img_files:
-    img = cv2.imread(os.path.join(INPUT_DIR, f))
-    out_path = os.path.join(OUTPUT_DIR, f"orig_{current_count:03d}.jpg")
-    cv2.imwrite(out_path, img)
-    current_count += 1
+        needed_images = TARGET_IMAGES_PER_CLASS - current_count
+        print(f"[*] {person_name}: Hiện có {current_count} ảnh. Đang sinh thêm {needed_images} ảnh...")
 
-
-while current_count < TARGET_COUNT:
-    random_file = random.choice(img_files)
-    img = cv2.imread(os.path.join(INPUT_DIR, random_file))
-    
-    aug_type = random.randint(1, 3)
-    
-    if aug_type == 1:
-        img_aug = cv2.flip(img, 1)
-    elif aug_type == 2:
-        value = random.randint(-40, 40)
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-        v = cv2.add(v, value)
-        v[v > 255] = 255
-        v[v < 0] = 0
-        final_hsv = cv2.merge((h, s, v))
-        img_aug = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-    else:
-        angle = random.randint(-15, 15)
-        h, w = img.shape[:2]
-        M = cv2.getRotationMatrix2D((w/2, h/2), angle, 1.0)
-        img_aug = cv2.warpAffine(img, M, (w, h))
+        # Load toàn bộ ảnh hiện tại lên RAM để làm "con giống"
+        images_data = []
+        for img_name in existing_images:
+            img_path = person_dir / img_name
+            img = load_img(img_path, target_size=(160, 160))
+            x = img_to_array(img)
+            images_data.append(x)
         
-    out_path = os.path.join(OUTPUT_DIR, f"aug_{current_count:03d}.jpg")
-    cv2.imwrite(out_path, img_aug)
-    current_count += 1
+        images_data = np.array(images_data)
+        
+        # Bắt đầu vòng lặp sinh ảnh
+        generated_count = 0
+        
+        # Hàm flow() sẽ ngẫu nhiên chọn ảnh gốc, biến tấu nó và lưu thẳng xuống ổ cứng
+        for batch in datagen.flow(
+            images_data, 
+            batch_size=1, 
+            save_to_dir=person_dir, 
+            save_prefix="aug", 
+            save_format="jpg"
+        ):
+            generated_count += 1
+            if generated_count >= needed_images:
+                break # Dừng lại khi đã đạt đủ Target
+                
+        print(f" -> Đã hoàn thành thư mục của {person_name}. Tổng: {TARGET_IMAGES_PER_CLASS} ảnh.")
 
-print(f"Complete! {TARGET_COUNT} images prepared in '{OUTPUT_DIR}'.")
+    print("\n[V] ĐÃ HOÀN TẤT NHÂN BẢN DỮ LIỆU!")
+
+if __name__ == "__main__":
+    augment_dataset()
