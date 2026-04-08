@@ -49,7 +49,7 @@ p90_latency = np.percentile(latencies, 90)
 p99_latency = np.percentile(latencies, 99)
 
 print("Predict:", class_names[pred])
-print("\n--- Benchmark 200 lần ---")
+print("\n--- Benchmark 200 times ---")
 print(f"Mean Latency : {mean_latency:.2f} ms")
 print(f"P50 Latency  : {p50_latency:.2f} ms")
 print(f"P90 Latency  : {p90_latency:.2f} ms")
