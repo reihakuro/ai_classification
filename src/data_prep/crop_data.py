@@ -2,14 +2,10 @@ import os
 import cv2
 from pathlib import Path
 
-# ==========================================
-# CẤU HÌNH ĐƯỜNG DẪN
-# ==========================================
-project_root = Path(__file__).resolve().parent
 
-# Thư mục chứa ảnh gốc (chưa cắt)INPUT_DIR = project_root / "raw"
-# Thư mục sẽ chứa ảnh ĐÃ CẮT (AI sẽ train bằng thư mục này)
-OUTPUT_DIR = project_root / "cropped"
+project_root = Path(__file__).resolve().parent
+INPUT_DIR = project_root / "data" / "raw"
+OUTPUT_DIR = project_root / "data" / "cropped"
 
 # Khởi tạo AI tìm mặt của OpenCV
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
