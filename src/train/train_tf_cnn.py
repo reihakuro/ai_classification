@@ -108,7 +108,7 @@ def eval_test(model, test_ds, class_names):
     y_pred_all = []
 
     for x, y_true in test_ds:
-        probs = model.predict(x, verbose=0)
+        probs = model.predict(x, verbose=2)
         y_pred = np.argmax(probs, axis=1) 
         y_true_all.extend(y_true.numpy().tolist())
         y_pred_all.extend(y_pred.tolist())
@@ -144,13 +144,13 @@ def main():
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint( 
             filepath=str(SAVE_DIR / "best.keras"), 
-            monitor="val_accuracy", mode="max", save_best_only=True, verbose=1
+            monitor="val_accuracy", mode="max", save_best_only=True, verbose=2
         ),
         tf.keras.callbacks.EarlyStopping(
-            monitor="val_accuracy", patience=10, restore_best_weights=True, verbose=1
+            monitor="val_accuracy", patience=10, restore_best_weights=True, verbose=2
         ),
         tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_accuracy', factor=0.5, patience=4, min_lr=1e-7, verbose=1
+            monitor='val_accuracy', factor=0.5, patience=4, min_lr=1e-7, verbose=2
         )
     ]
 
