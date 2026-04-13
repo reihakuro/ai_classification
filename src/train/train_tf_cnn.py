@@ -22,7 +22,8 @@ EPOCHS = 100
 LR_INIT = 1e-4 
 SEED = 42           
 
-SAVE_DIR = project_root / "models" / "tf_cnn_face_model_v10"
+version = input("Version Tag: ")
+SAVE_DIR  = project_root / "models" / f"tf_cnn_face_model_v{version}"
 LABELS_JSON = SAVE_DIR / "class_names.json"
 
 # ==========================================

@@ -2,19 +2,19 @@
 
 all: eval
 
-data:data
+data:
 	@echo " Preprocessing data..."
 	python src/data_prep/split_data.py
 
-train: train data
+train: data
 	@echo " Training model..."
 	python src/train/train_tf_cnn.py
 
-quantize: quantize train
+quantize: train
 	@echo " Quantization..."
 	python src/train/quantization.py
 
-eval: benchmarking
+eval: quantize
 	@echo " Benchmarking..."
 	python src/inference/pi/process-tfl/benchmark_comparison.py
 	@echo "\nFinished!"
