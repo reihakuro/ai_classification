@@ -1,14 +1,19 @@
 import os
 import shutil
 import random
+import argparse
 from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--src', type=str, default="data/raw", help='Path to the raw data directory')
+parser.add_argument('--dest', type=str, default="data/dataset_split", help='Path to the destination directory')
+args = parser.parse_args()
 
 current_file = Path(__file__).resolve().parent
 project_root = current_file.parent.parent 
 
-SRC_DIR = project_root / "data" / "raw"
-
-DEST_DIR = project_root / "data" / "dataset_split" 
+SRC_DIR = project_root / args.src if not Path(args.src).is_absolute() else Path(args.src)
+DEST_DIR = project_root / args.dest if not Path(args.dest).is_absolute() else Path(args.dest)
 
 TRAIN_RATIO = 0.70
 VAL_RATIO = 0.15
@@ -17,10 +22,9 @@ SEED = 42
 
 def split_data():
     if not SRC_DIR.exists():
-        print(f"[!] Lỗi: Không tìm thấy thư mục {SRC_DIR}")
+        print(f"Cant find {SRC_DIR}")
         return
 
-    # Tạo trước các thư mục đích (train, val, test)
     for split_name in ["train", "val", "test"]:
         (DEST_DIR / split_name).mkdir(parents=True, exist_ok=True)
 
