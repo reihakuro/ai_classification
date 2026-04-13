@@ -3,16 +3,11 @@ import shutil
 import random
 from pathlib import Path
 
-# ==========================================
-# CẤU HÌNH ĐƯỜNG DẪN & TỈ LỆ
-# ==========================================
 current_file = Path(__file__).resolve().parent
 project_root = current_file.parent.parent 
 
-# Nguồn: Thư mục chứa 500 ảnh đã Crop & Augment
 SRC_DIR = project_root / "data" / "raw"
 
-# Đích: Thư mục mới chứa dữ liệu đã chia gọn gàng
 DEST_DIR = project_root / "data" / "dataset_split" 
 
 TRAIN_RATIO = 0.70
@@ -48,12 +43,10 @@ def split_data():
         train_count = int(total_images * TRAIN_RATIO)
         val_count = int(total_images * VAL_RATIO)
         
-        # Cắt mảng (Slicing) theo đúng tỉ lệ
         train_imgs = images[:train_count]
         val_imgs = images[train_count:train_count + val_count]
-        test_imgs = images[train_count + val_count:] # Gom phần lẻ còn lại cho test
+        test_imgs = images[train_count + val_count:] 
 
-        # Tạo thư mục con và Copy file
         for split_name, img_list in zip(["train", "val", "test"], [train_imgs, val_imgs, test_imgs]):
             split_person_dir = DEST_DIR / split_name / person_name
             split_person_dir.mkdir(parents=True, exist_ok=True)
@@ -63,9 +56,9 @@ def split_data():
                 dest_path = split_person_dir / img_name
                 shutil.copy2(src_path, dest_path)
 
-        print(f"[+] {person_name}: {total_images} ảnh -> Train: {len(train_imgs)} | Val: {len(val_imgs)} | Test: {len(test_imgs)}")
+        print(f"[+] {person_name}: {total_images} images -> Train: {len(train_imgs)} | Val: {len(val_imgs)} | Test: {len(test_imgs)}")
 
-    print("\n[V] ĐÃ HOÀN TẤT CHIA DỮ LIỆU!")
+    print("\nSplit data completed successfully!")
 
 if __name__ == "__main__":
     split_data()

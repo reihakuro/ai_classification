@@ -2,12 +2,17 @@ import json
 import cv2
 import numpy as np
 import tensorflow as tf
+import argparse
 from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--version', type=str, required=True, help='Version tag cho model')
+args = parser.parse_args()
+version = args.version
 
 current_file = Path(__file__).resolve().parent
 ROOT = current_file.parent.parent 
 
-version = input("Model version?: ")
 SAVE_DIR = ROOT / "models" / f"tf_cnn_face_model_v{version}"
 MODEL_PATH = SAVE_DIR / "best.keras"
 META_PATH = SAVE_DIR / "class_names.json"
