@@ -7,7 +7,7 @@ import argparse
 from sklearn.metrics import confusion_matrix, classification_report
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--version', type=str, default='1.0', help='Version tag cho model')
+parser.add_argument('--version', type=str, required=True, help='Version tag cho model')
 args = parser.parse_args()
 
 version = args.version

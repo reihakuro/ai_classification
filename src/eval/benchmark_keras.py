@@ -8,7 +8,7 @@ from pathlib import Path
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--version', type=str, default='1.0', help='Version tag for the model')
+parser.add_argument('--version', type=str, required=True, help='Version tag for the model')
 args = parser.parse_args()
 version = args.version
 
