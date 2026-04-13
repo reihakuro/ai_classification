@@ -3,7 +3,14 @@ import json
 import numpy as np
 import tensorflow as tf
 from pathlib import Path
+import argparse
 from sklearn.metrics import confusion_matrix, classification_report
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--version', type=str, default='1.0', help='Version tag cho model')
+args = parser.parse_args()
+
+version = args.version
 
 # ==========================================
 # PARAMETERS & PATHS
@@ -22,7 +29,6 @@ EPOCHS = 100
 LR_INIT = 1e-4 
 SEED = 42           
 
-version = input("Version Tag: ")
 SAVE_DIR  = project_root / "models" / f"tf_cnn_face_model_v{version}"
 LABELS_JSON = SAVE_DIR / "class_names.json"
 

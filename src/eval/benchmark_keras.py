@@ -5,11 +5,16 @@ import numpy as np
 import cv2
 import tensorflow as tf
 from pathlib import Path
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--version', type=str, default='1.0', help='Version tag for the model')
+args = parser.parse_args()
+version = args.version
 
 current_file = Path(__file__).resolve()
 project_root = current_file.parent.parent
 
-version = input("Checking what version?: ")
 SAVE_DIR   = project_root / "models" / f"tf_cnn_face_model_v{version}"
 MODEL_PATH = SAVE_DIR / "best.keras"
 META_PATH  = SAVE_DIR / "class_names.json"

@@ -1,5 +1,7 @@
 .PHONY: all data train quantize eval clean deploy
 
+VERSION := $(shell date +%Y%m%d_%H%M%S)
+
 all: eval
 
 data:
@@ -7,14 +9,14 @@ data:
 	python src/data_prep/split_data.py
 
 train: data
-	@echo " Training model..."
-	python src/train/train_tf_cnn.py
+	@echo " Training model $(VERSION)..."
+	python src/train/train_tf_cnn.py --version $(VERSION)
 
 quantize: train
 	@echo " Quantization..."
-	python src/train/quantization.py
+	python src/train/quantization.py --version $(VERSION)
 
 eval: quantize
 	@echo " Benchmarking..."
-	python src/inference/pi/process-tfl/benchmark_comparison.py
+	python src/eval/benchmark_keras.py --version $(VERSION)
 	@echo "\nFinished!"
