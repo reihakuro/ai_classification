@@ -30,8 +30,6 @@ def split_data():
 
     print(f"[*] Bắt đầu chia dữ liệu từ {SRC_DIR} sang {DEST_DIR}...")
     
-    # Đặt Seed để đảm bảo nếu bạn có lỡ chạy lại file này 2 lần, 
-    # nó vẫn chia cùng một danh sách ảnh giống hệt nhau, không bị lộn xộn.
     random.seed(SEED) 
 
     for person_name in os.listdir(SRC_DIR):

@@ -4,24 +4,22 @@ import numpy as np
 from pathlib import Path
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 
-# ==========================================
-# CẤU HÌNH ĐƯỜNG DẪN
-# ==========================================
 current_file = Path(__file__).resolve().parent
 project_root = current_file.parent.parent 
 
-DATA_DIR = project_root / "data" / "raw"
+DATA_DIR = project_root / "dataset_split" / "train"
 
-TARGET_IMAGES_PER_CLASS = 500
+TARGET_IMAGES_PER_CLASS = 1000
 
 datagen = ImageDataGenerator(
-    rotation_range=15,        # Xoay ngẫu nhiên +- 15 độ
-    width_shift_range=0.1,    # Dịch qua trái/phải 10%
-    height_shift_range=0.1,   # Dịch lên/xuống 10%
-    brightness_range=[0.7, 1.3], # Tối đi 30% hoặc sáng lên 30%
-    zoom_range=0.1,           # Phóng to/thu nhỏ 10%
-    horizontal_flip=True,     # Lật gương (rất quan trọng)
-    fill_mode='nearest'       # Lấp đầy các điểm ảnh bị trống khi xoay
+    rotation_range=15,        
+    width_shift_range=0.1,    
+    height_shift_range=0.1,   
+    brightness_range=[0.7, 1.3], 
+    zoom_range=0.1,          
+    horizontal_flip=True,
+    vertical_flip=True,     
+    fill_mode='nearest'       
 )
 
 def augment_dataset():
@@ -34,7 +32,6 @@ def augment_dataset():
         if not person_dir.is_dir():
             continue
 
-        # Đếm số ảnh hiện tại của người này
         existing_images = [f for f in os.listdir(person_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
         current_count = len(existing_images)
 
@@ -45,7 +42,6 @@ def augment_dataset():
         needed_images = TARGET_IMAGES_PER_CLASS - current_count
         print(f"[*] {person_name}: Hiện có {current_count} ảnh. Đang sinh thêm {needed_images} ảnh...")
 
-        # Load toàn bộ ảnh hiện tại lên RAM để làm "con giống"
         images_data = []
         for img_name in existing_images:
             img_path = person_dir / img_name
@@ -55,10 +51,8 @@ def augment_dataset():
         
         images_data = np.array(images_data)
         
-        # Bắt đầu vòng lặp sinh ảnh
         generated_count = 0
         
-        # Hàm flow() sẽ ngẫu nhiên chọn ảnh gốc, biến tấu nó và lưu thẳng xuống ổ cứng
         for batch in datagen.flow(
             images_data, 
             batch_size=1, 
@@ -68,7 +62,7 @@ def augment_dataset():
         ):
             generated_count += 1
             if generated_count >= needed_images:
-                break # Dừng lại khi đã đạt đủ Target
+                break 
                 
         print(f" -> Đã hoàn thành thư mục của {person_name}. Tổng: {TARGET_IMAGES_PER_CLASS} ảnh.")
 
