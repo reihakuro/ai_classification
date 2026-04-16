@@ -2,12 +2,17 @@ import os
 import cv2
 import numpy as np
 from pathlib import Path
+import argparse
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--src', type=str, default="data/dataset_split/train", help='Path to the raw data directory')
+args = parser.parse_args()
 
 current_file = Path(__file__).resolve().parent
 project_root = current_file.parent.parent 
 
-DATA_DIR = project_root / "dataset_split" / "train"
+DATA_DIR = project_root / args.src if not Path(args.src).is_absolute() else Path(args.src)
 
 TARGET_IMAGES_PER_CLASS = 1000
 

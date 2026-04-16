@@ -7,8 +7,10 @@ all: eval
 data:
 	@echo " Preprocessing data..."
 	python src/data_prep/split_data.py
-
-train: data
+augment: data
+	@echo " Augmenting data..."
+	python src/data_prep/augment.py
+train: augment
 	@echo " Training model $(VERSION)..."
 	python src/train/train_tf_cnn.py --version $(VERSION)
 
